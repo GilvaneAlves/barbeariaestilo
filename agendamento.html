@@ -2,104 +2,199 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Agendamento - Barbearia Estilo</title>
 
   <link rel="stylesheet" href="styles.css" />
-  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet" />
 </head>
 <body>
 
-  <header>
-    <img src="./img/barber-logo.png" alt="Logo da Barbearia" class="logo" />
-    <h1>Agende seu Horário</h1>
-    <nav>
-      <a href="index.html">Início</a>
-      <a href="agendamento.html" class="active">Agendamento</a>
-    </nav>
-  </header>
+<header>
+  <img src="./img/barber-logo.png" alt="Logo da Barbearia" class="logo" />
+  <h1>Agende seu Horário</h1>
+  <nav>
+    <a href="index.html">Início</a>
+    <a href="agendamento.html" class="active">Agendamento</a>
+    <a href="login.html">Área do Barbeiro</a>
+  </nav>
+</header>
 
-  <main>
-    <section class="calendar-section">
-      <h2>Escolha a data</h2>
-      <div id="calendar"></div>
-    </section>
+<main>
+  <section class="calendar-section">
+    <h2>Escolha a data</h2>
+    <div id="calendar"></div>
+  </section>
 
-    <section id="booking-form" style="display: none;">
-      <h2>Horários disponíveis em <span id="selected-date"></span></h2>
-      <form id="form-agendamento">
-        <label for="name">Nome:</label>
-        <input type="text" id="name" required />
+  <section id="booking-form" style="display: none;">
+    <h2>Horários disponíveis em <span id="selected-date"></span></h2>
+    <form id="form-agendamento">
+      <label for="name">Nome:</label>
+      <input type="text" id="name" required />
 
-        <label for="phone">Telefone:</label>
-        <input type="text" id="phone" required />
+      <label for="phone">Telefone:</label>
+      <input type="text" id="phone" required />
 
-        <label for="time">Escolha o horário:</label>
-        <select id="time" required></select>
+      <label for="time">Escolha o horário:</label>
+      <select id="time" required></select>
 
-        <button type="submit">Agendar</button>
-      </form>
-    </section>
-  </main>
+      <button type="submit">Agendar</button>
+    </form>
+  </section>
+</main>
 
-  <footer>
-    © 2025 Barbearia Estilo | Todos os direitos reservados
-  </footer>
+<footer>
+  © 2025 Barbearia Estilo | Todos os direitos reservados
+</footer>
 
-  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales-all.min.js"></script>
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 
-  <!-- Script personalizado para calendário e redirecionamento -->
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      const calendarEl = document.getElementById('calendar');
-      const formSection = document.getElementById('booking-form');
-      const dateSpan = document.getElementById('selected-date');
-      const timeSelect = document.getElementById('time');
-      const form = document.getElementById('form-agendamento');
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales-all.min.js"></script>
 
-      const calendar = new FullCalendar.Calendar(calendarEl, {
-        locale: 'pt-br',
-        initialView: 'dayGridMonth',
-        selectable: true,
-        dateClick: function(info) {
-          const selectedDate = info.dateStr;
-          dateSpan.textContent = selectedDate;
-          formSection.style.display = 'block';
+<script>
+  // --- CONFIGURE AQUI OS DADOS DO SEU FIREBASE ---
+const firebaseConfig = {
+  apiKey: "AIzaSyAvzq9MGYRWg2Wlh3kb7VhvJ7Hw_g98Bnc",
+  authDomain: "barber-90dee.firebaseapp.com",
+  databaseURL: "https://barber-90dee-default-rtdb.firebaseio.com",
+  projectId: "barber-90dee",
+  storageBucket: "barber-90dee.firebasestorage.app",
+  messagingSenderId: "837339106776",
+  appId: "1:837339106776:web:ea921be933612312a4f6ad"
+};
 
-          // Horários disponíveis (ajuste conforme necessário)
-          const horarios = [
-            '09:00', '10:00', '11:00', '13:00',
-            '14:00', '15:00', '16:00', '17:00'
-          ];
 
-          timeSelect.innerHTML = '';
-          horarios.forEach(h => {
-            const opt = document.createElement('option');
-            opt.value = h;
-            opt.textContent = h;
-            timeSelect.appendChild(opt);
-          });
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const calendarEl = document.getElementById('calendar');
+    const formEl = document.getElementById('booking-form');
+    const timeSelect = document.getElementById('time');
+    const selectedDateLabel = document.getElementById('selected-date');
+    const form = document.getElementById('form-agendamento');
+
+    // Função para formatar hora tipo "8" => "08:00"
+    function formatarHora(hora) {
+      return hora.toString().padStart(2, '0') + ':00';
+    }
+
+    // Gera horários disponíveis para o dia selecionado
+    function gerarHorariosDisponiveis(dataSelecionada) {
+      const data = new Date(dataSelecionada);
+      const diaSemana = data.getDay();
+      let horariosDisponiveis = [];
+
+      if (diaSemana >= 1 && diaSemana <= 5) {
+        for (let h = 8; h <= 11; h++) horariosDisponiveis.push(formatarHora(h));
+        for (let h = 13; h <= 21; h++) horariosDisponiveis.push(formatarHora(h));
+      } else if (diaSemana === 6) {
+        for (let h = 9; h <= 18; h++) horariosDisponiveis.push(formatarHora(h));
+      }
+      return horariosDisponiveis;
+    }
+
+    // Carrega agendamentos do Firebase para a data selecionada
+    async function carregarAgendamentos(dataSelecionada) {
+      const snapshot = await db.ref('agendamentos').orderByChild('date').equalTo(dataSelecionada).once('value');
+      let horariosReservados = [];
+      snapshot.forEach(childSnap => {
+        horariosReservados.push(childSnap.val().time);
+      });
+      return horariosReservados;
+    }
+
+    // Inicializa o calendário FullCalendar
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+      initialView: 'dayGridMonth',
+      locale: 'pt-br',
+      selectable: true,
+      dateClick: async function (info) {
+        const dataSelecionada = info.dateStr;
+        const diaSelecionado = new Date(dataSelecionada).getDay();
+
+        if (diaSelecionado === 0) {
+          alert("⚠️ Domingo não está disponível para agendamentos.");
+          return;
+        }
+
+        selectedDateLabel.textContent = dataSelecionada;
+        formEl.style.display = 'block';
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+
+        // Buscar horários já agendados no Firebase
+        const horariosReservados = await carregarAgendamentos(dataSelecionada);
+        const horariosDisponiveis = gerarHorariosDisponiveis(dataSelecionada);
+
+        timeSelect.innerHTML = '';
+
+        horariosDisponiveis.forEach(hora => {
+          const option = document.createElement('option');
+          option.value = hora;
+          option.textContent = horariosReservados.includes(hora)
+            ? `${hora} (Indisponível)`
+            : hora;
+          option.disabled = horariosReservados.includes(hora);
+          timeSelect.appendChild(option);
+        });
+
+        sessionStorage.setItem("selectedDate", dataSelecionada);
+      }
+    });
+
+    calendar.render();
+
+    // Envio do formulário - salvar agendamento no Firebase
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const nome = document.getElementById('name').value.trim();
+      const telefone = document.getElementById('phone').value.trim();
+      const hora = document.getElementById('time').value;
+      const data = sessionStorage.getItem("selectedDate");
+
+      if (!data || !hora || !nome || !telefone) {
+        alert("❌ Por favor, preencha todos os campos antes de confirmar o agendamento.");
+        return;
+      }
+
+      // Verifica se o horário já está reservado no Firebase (concorrência)
+      const snapshot = await db.ref('agendamentos').orderByChild('date').equalTo(data).once('value');
+      let jaAgendado = false;
+      snapshot.forEach(childSnap => {
+        if (childSnap.val().time === hora) {
+          jaAgendado = true;
         }
       });
 
-      calendar.render();
+      if (jaAgendado) {
+        alert("⚠️ Este horário já foi reservado por outra pessoa. Escolha outro horário.");
+        return;
+      }
 
-      form.addEventListener('submit', function (e) {
-        e.preventDefault();
+      // Salva o novo agendamento no Firebase
+      const novoAgendamento = {
+        name: nome,
+        phone: telefone,
+        date: data,
+        time: hora
+      };
 
-        const nome = document.getElementById('name').value;
-        const telefone = document.getElementById('phone').value;
-        const horario = document.getElementById('time').value;
-        const data = dateSpan.textContent;
-
-        const mensagem = `Olá! Novo agendamento:\n\n📅 Data: ${data}\n⏰ Horário: ${horario}\n👤 Nome: ${nome}\n📱 Telefone: ${telefone}`;
-        const numeroWhatsApp = '5551999709417';
-        const url = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensagem)}`;
-
-        window.open(url, '_blank'); // Abre em nova aba
-      });
+      try {
+        await db.ref('agendamentos').push(novoAgendamento);
+        alert(`✅ Agendamento confirmado com sucesso!\n\n👤 Nome: ${nome}\n📅 Data: ${data}\n⏰ Hora: ${hora}\n📞 Telefone: ${telefone}`);
+        form.reset();
+        formEl.style.display = 'none';
+        sessionStorage.removeItem("selectedDate");
+      } catch (error) {
+        alert("Erro ao salvar agendamento: " + error.message);
+      }
     });
-  </script>
+  });
+</script>
+
 </body>
 </html>

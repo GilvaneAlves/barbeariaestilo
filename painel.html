@@ -1,0 +1,14 @@
+<div id="lista-agendamentos"></div>
+
+<script>
+  const listaDiv = document.getElementById("lista-agendamentos");
+
+  firebase.database().ref('agendamentos').on('value', function(snapshot) {
+    listaDiv.innerHTML = "";
+    snapshot.forEach(function(item) {
+      const agendamento = item.val();
+      const bloco = `<p><strong>${agendamento.nome}</strong> — ${agendamento.data} às ${agendamento.hora}</p>`;
+      listaDiv.innerHTML += bloco;
+    });
+  });
+</script>
