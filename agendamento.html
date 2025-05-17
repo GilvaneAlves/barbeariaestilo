@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Agendamento - Barbearia Estilo</title>
+
+  <link rel="stylesheet" href="styles.css" />
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
+</head>
+<body>
+
+  <header>
+    <img src="./img/barber-logo.png" alt="Logo da Barbearia" class="logo" />
+    <h1>Agende seu Horário</h1>
+    <nav>
+      <a href="index.html">Início</a>
+      <a href="agendamento.html" class="active">Agendamento</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="calendar-section">
+      <h2>Escolha a data</h2>
+      <div id="calendar"></div>
+    </section>
+
+    <section id="booking-form" style="display: none;">
+      <h2>Horários disponíveis em <span id="selected-date"></span></h2>
+      <form id="form-agendamento">
+        <label for="name">Nome:</label>
+        <input type="text" id="name" required />
+
+        <label for="phone">Telefone:</label>
+        <input type="text" id="phone" required />
+
+        <label for="time">Escolha o horário:</label>
+        <select id="time" required></select>
+
+        <button type="submit">Agendar</button>
+      </form>
+    </section>
+  </main>
+
+  <footer>
+    © 2025 Barbearia Estilo | Todos os direitos reservados
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales-all.min.js"></script>
+
+  <!-- Script personalizado para calendário e redirecionamento -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const calendarEl = document.getElementById('calendar');
+      const formSection = document.getElementById('booking-form');
+      const dateSpan = document.getElementById('selected-date');
+      const timeSelect = document.getElementById('time');
+      const form = document.getElementById('form-agendamento');
+
+      const calendar = new FullCalendar.Calendar(calendarEl, {
+        locale: 'pt-br',
+        initialView: 'dayGridMonth',
+        selectable: true,
+        dateClick: function(info) {
+          const selectedDate = info.dateStr;
+          dateSpan.textContent = selectedDate;
+          formSection.style.display = 'block';
+
+          // Horários disponíveis (ajuste conforme necessário)
+          const horarios = [
+            '09:00', '10:00', '11:00', '13:00',
+            '14:00', '15:00', '16:00', '17:00'
+          ];
+
+          timeSelect.innerHTML = '';
+          horarios.forEach(h => {
+            const opt = document.createElement('option');
+            opt.value = h;
+            opt.textContent = h;
+            timeSelect.appendChild(opt);
+          });
+        }
+      });
+
+      calendar.render();
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const nome = document.getElementById('name').value;
+        const telefone = document.getElementById('phone').value;
+        const horario = document.getElementById('time').value;
+        const data = dateSpan.textContent;
+
+        const mensagem = `Olá! Novo agendamento:\n\n📅 Data: ${data}\n⏰ Horário: ${horario}\n👤 Nome: ${nome}\n📱 Telefone: ${telefone}`;
+        const numeroWhatsApp = '5551999709417';
+        const url = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensagem)}`;
+
+        window.open(url, '_blank'); // Abre em nova aba
+      });
+    });
+  </script>
+</body>
+</html>
