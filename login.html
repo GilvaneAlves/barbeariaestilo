@@ -29,6 +29,11 @@
 
       <button type="submit">Entrar</button>
     </form>
+
+    <div style="margin-top: 20px; text-align: center;">
+      <button id="register-btn">Criar conta</button>
+      <button id="reset-btn">Esqueci a senha</button>
+    </div>
   </section>
 </main>
 
@@ -36,40 +41,61 @@
   © 2025 Barbearia Estilo | Todos os direitos reservados
 </footer>
 
-<!-- Firebase -->
+<!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 
 <script>
+  // Configuração correta do Firebase
   const firebaseConfig = {
-    apiKey: "SUA_API_KEY",
-    authDomain: "SEU_AUTH_DOMAIN",
-    databaseURL: "SUA_DATABASE_URL",
-    projectId: "SEU_PROJECT_ID",
-    storageBucket: "SEU_STORAGE_BUCKET",
-    messagingSenderId: "SEU_MESSAGING_SENDER_ID",
-    appId: "SEU_APP_ID"
+    apiKey: "AIzaSyAvzq9MGYRWg2Wlh3kb7VhvJ7Hw_g98Bnc",
+    authDomain: "barber-90dee.firebaseapp.com",
+    databaseURL: "https://barber-90dee-default-rtdb.firebaseio.com",
+    projectId: "barber-90dee",
+    storageBucket: "barber-90dee.firebasestorage.app",
+    messagingSenderId: "837339106776",
+    appId: "1:837339106776:web:ea921be933612312a4f6ad",
+    measurementId: "G-8EBY1LE1XP"
   };
 
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
 
-  const loginForm = document.getElementById('login-form');
-
-  loginForm.addEventListener('submit', (e) => {
+  // LOGIN
+  document.getElementById('login-form').addEventListener('submit', (e) => {
     e.preventDefault();
-
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value.trim();
 
     auth.signInWithEmailAndPassword(email, password)
       .then(() => {
-        alert('Login efetuado com sucesso!');
-        window.location.href = 'agenda.html';
+        alert('✅ Login efetuado com sucesso!');
+        window.location.href = 'painel.html'; // redireciona para o painel
       })
       .catch(error => {
-        alert('Erro no login: ' + error.message);
+        alert('❌ Erro no login: ' + error.message);
       });
+  });
+
+  // REGISTRO
+  document.getElementById('register-btn').addEventListener('click', () => {
+    const email = prompt("Digite seu e-mail:");
+    const password = prompt("Digite uma senha com pelo menos 6 caracteres:");
+    if (email && password) {
+      auth.createUserWithEmailAndPassword(email, password)
+        .then(() => alert("✅ Conta criada com sucesso!"))
+        .catch(error => alert("❌ Erro ao criar conta: " + error.message));
+    }
+  });
+
+  // RECUPERAÇÃO DE SENHA
+  document.getElementById('reset-btn').addEventListener('click', () => {
+    const email = prompt("Digite seu e-mail para recuperar a senha:");
+    if (email) {
+      auth.sendPasswordResetEmail(email)
+        .then(() => alert("📧 E-mail de recuperação enviado!"))
+        .catch(error => alert("❌ Erro: " + error.message));
+    }
   });
 </script>
 

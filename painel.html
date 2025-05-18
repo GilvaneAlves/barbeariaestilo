@@ -1,14 +1,49 @@
-<div id="lista-agendamentos"></div>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Painel do Barbeiro - Barbearia Estilo</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<header>
+  <img src="./img/barber-logo.png" alt="Logo da Barbearia" class="logo" />
+  <h1>Painel do Barbeiro</h1>
+  <nav>
+    <a href="index.html">Início</a>
+    <a href="agendamento.html">Agendamento</a>
+    <a href="#" id="logout">Sair</a>
+  </nav>
+</header>
 
-<script>
-  const listaDiv = document.getElementById("lista-agendamentos");
+<main>
+  <section id="painel-section" style="max-width: 800px; margin: 30px auto; background:#fff; padding: 30px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+    <h2>Agendamentos</h2>
+    <table id="agendamentos-table" style="width:100%; border-collapse: collapse;">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Telefone</th>
+          <th>Data</th>
+          <th>Hora</th>
+          <th>Ação</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+</main>
 
-  firebase.database().ref('agendamentos').on('value', function(snapshot) {
-    listaDiv.innerHTML = "";
-    snapshot.forEach(function(item) {
-      const agendamento = item.val();
-      const bloco = `<p><strong>${agendamento.nome}</strong> — ${agendamento.data} às ${agendamento.hora}</p>`;
-      listaDiv.innerHTML += bloco;
-    });
-  });
-</script>
+<footer>
+  © 2025 Barbearia Estilo | Todos os direitos reservados
+</footer>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
+<script src="painel.js"></script>
+</body>
+</html>
